@@ -35,7 +35,7 @@ const verifyToken = async (req, res, next) => {
   next()
 }
 
-const client = new MongoClient(`${process.env.MONGODB_URI}/api/auth/jwks`)
+const client = new MongoClient(process.env.MONGODB_URI)
 
 // export async function connectToMongoDB() {
 //   try {
