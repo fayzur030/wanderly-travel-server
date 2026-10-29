@@ -3,11 +3,37 @@ import 'dotenv/config'
 import cors from 'cors'
 const app = express()
 import { MongoClient, ObjectId } from 'mongodb'
-const port = process.env.PORT || 5000
+import { createRemoteJWKSet, jwtVerify } from 'jose'
+const port = 5000
 
 //middleware
 app.use(express.json())
 app.use(cors())
+
+//Todo: Middleware token verification
+
+const verifyToken = async (req, res, next) => {
+  const authHeader = req.headers.authorization
+  console.log(authHeader)
+  if (!authHeader) {
+    return res.status(401).send({ message: 'Unauthorized' })
+  }
+  const token = authHeader.split(' ')[1]
+  if (!token) {
+    return res.status(401).send({ message: 'Unauthorized' })
+  }
+
+  try {
+    const JWKS = createRemoteJWKSet(new URL(process.env.client_URL))
+    const { payload } = await jwtVerify(token, JWKS)
+    console.log(payload)
+  } catch (error) {
+    console.log(error)
+    return res.status(500).send('Server error')
+  }
+
+  next()
+}
 
 const client = new MongoClient(process.env.MONGODB_URI)
 
@@ -44,7 +70,7 @@ app.post('/bookings', async (req, res) => {
 
 // get booking data api
 //get api: localhost:5000/my-bookings
-app.get('/my-bookings/:email', async (req, res) => {
+app.get('/my-bookings/:email', verifyToken, async (req, res) => {
   try {
     const { email } = req.params
     const result = await bookingCollection
@@ -63,7 +89,7 @@ app.get('/my-bookings/:email', async (req, res) => {
 // single booking data
 
 // DELETE a booking by ID
-app.delete('/delete-booking/:id', async (req, res) => {
+app.delete('/delete-booking/:id', verifyToken, async (req, res) => {
   try {
     const { id } = req.params
 
@@ -116,7 +142,7 @@ app.get('/destinations', async (req, res) => {
 
 //post api:localhost:5000/add-destination
 
-app.post('/add-destination', async (req, res) => {
+app.post('/add-destination', verifyToken, async (req, res) => {
   try {
     const newDestinations = req.body
     const result = await destinations.insertOne(newDestinations)
@@ -129,7 +155,7 @@ app.post('/add-destination', async (req, res) => {
 
 // single data api: localhost:5000/destination/:id
 
-app.get('/destination/:id', async (req, res) => {
+app.get('/destination/:id', verifyToken, async (req, res) => {
   try {
     const { id } = req.params
     const result = await destinations.findOne({ _id: new ObjectId(id) })
@@ -144,7 +170,7 @@ app.get('/destination/:id', async (req, res) => {
 })
 
 // update api: localhost:5000/update-destination/:id
-app.patch('/update-destination/:id', async (req, res) => {
+app.patch('/update-destination/:id', verifyToken, async (req, res) => {
   try {
     const { id } = req.params
     const updatedData = req.body
@@ -166,7 +192,7 @@ app.patch('/update-destination/:id', async (req, res) => {
 
 // delete api : localhost:5000/delete-destination/:id
 
-app.delete('/delete-destination/:id', async (req, res) => {
+app.delete('/delete-destination/:id', verifyToken, async (req, res) => {
   try {
     const { id } = req.params
     const result = await destinations.deleteOne({ _id: new ObjectId(id) })
