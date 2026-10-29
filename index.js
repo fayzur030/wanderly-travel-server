@@ -140,6 +140,22 @@ app.get('/destinations', async (req, res) => {
   }
 })
 
+//Todo: feature destination api
+
+app.get('/feature-destination', async (req, res) => {
+  try {
+    const featureDestination = await destinations.find().limit(5).toArray()
+    res.status(200).send({
+      status: 200,
+      message: 'Feature Destinations fetched successfully',
+      data: featureDestination,
+    })
+  } catch (error) {
+    console.log(error)
+    res.status(500).send('Failed to fetch destinations')
+  }
+})
+
 //post api:localhost:5000/add-destination
 
 app.post('/add-destination', verifyToken, async (req, res) => {
