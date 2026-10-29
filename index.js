@@ -22,14 +22,16 @@ const verifyToken = async (req, res, next) => {
   if (!token) {
     return res.status(401).send({ message: 'Unauthorized' })
   }
-
   try {
-    const JWKS = createRemoteJWKSet(new URL(process.env.client_URL))
+    const JWKS = createRemoteJWKSet(
+      new URL('/api/auth/jwks', process.env.CLIENT_URL)
+    )
+
     const { payload } = await jwtVerify(token, JWKS)
     console.log(payload)
   } catch (error) {
-    console.log(error)
-    return res.status(500).send('Server error')
+    console.error('Token verification failed:', error)
+    return res.status(401).send({ message: 'Invalid token' })
   }
 
   next()
