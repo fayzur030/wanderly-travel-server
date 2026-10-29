@@ -35,15 +35,25 @@ const verifyToken = async (req, res, next) => {
   next()
 }
 
-const client = new MongoClient(process.env.MONGODB_URI)
+const client = new MongoClient(`${process.env.MONGODB_URI}/api/auth/jwks`)
 
+// export async function connectToMongoDB() {
+//   try {
+//     await client.connect()
+//     console.log('You successfully connected to MongoDB!')
+//     return client
+//   } catch (err) {
+//     console.error('MongoDB connection failed:', err)
+//   }
+// }
 export async function connectToMongoDB() {
   try {
     await client.connect()
     console.log('You successfully connected to MongoDB!')
     return client
   } catch (err) {
-    console.dir(err)
+    console.error('MongoDB connection failed:', err)
+    throw err
   }
 }
 
@@ -230,3 +240,4 @@ app.get('/', (req, res) => {
 app.listen(port, () => {
   console.log(`Server is running on port ${port}`)
 })
+export default app
