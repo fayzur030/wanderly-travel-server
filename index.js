@@ -24,7 +24,7 @@ const verifyToken = async (req, res, next) => {
   }
   try {
     const JWKS = createRemoteJWKSet(
-      new URL('/api/auth/jwks', process.env.CLIENT_URL)
+      new URL(`${process.env.CLIENT_URL}/api/auth/jwks`)
     )
 
     const { payload } = await jwtVerify(token, JWKS)
